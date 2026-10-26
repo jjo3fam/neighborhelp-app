@@ -11,6 +11,9 @@
     "lint": "npm run lint --workspace apps/api && npm run lint --workspace apps/mobile"
   },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.0",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0"
   }
 }
