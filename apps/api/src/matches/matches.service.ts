@@ -18,6 +18,12 @@ export class MatchesService {
     });
   }
 
+  findForUserAndPost(postId: string, userId: string) {
+    return this.matchesRepository.findOne({
+      where: [{ postId, posterUserId: userId }, { postId, workerUserId: userId }],
+    });
+  }
+
   create(dto: CreateMatchDto) {
     const match = this.matchesRepository.create({
       postId: dto.postId,

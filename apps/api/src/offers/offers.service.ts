@@ -46,6 +46,12 @@ export class OffersService {
     offer.status = 'accepted';
     const savedOffer = await this.offersRepository.save(offer);
 
+    const exactLocation = {
+      exactLatitude: post.approximateLatitude,
+      exactLongitude: post.approximateLongitude,
+      exactLocationLabel: post.approximateLocationName || 'Nearby area',
+    };
+
     const existing = await this.matchesRepository.findOne({
       where: { postId: offer.postId, workerUserId: offer.userId },
     });
@@ -53,6 +59,9 @@ export class OffersService {
     if (existing) {
       existing.status = 'accepted';
       existing.exactLocationRevealed = true;
+      existing.exactLatitude = exactLocation.exactLatitude;
+      existing.exactLongitude = exactLocation.exactLongitude;
+      existing.exactLocationLabel = exactLocation.exactLocationLabel;
       const updated = await this.matchesRepository.save(existing);
       return { offer: savedOffer, match: updated };
     }
@@ -62,6 +71,9 @@ export class OffersService {
       posterUserId: post.userId,
       workerUserId: offer.userId,
       status: 'accepted',
+      exactLatitude: exactLocation.exactLatitude,
+      exactLongitude: exactLocation.exactLongitude,
+      exactLocationLabel: exactLocation.exactLocationLabel,
       exactLocationRevealed: true,
     });
 

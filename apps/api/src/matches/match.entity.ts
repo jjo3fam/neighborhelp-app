@@ -17,6 +17,15 @@ export class Match {
   @Column({ default: 'accepted' })
   status: 'accepted' | 'cancelled' | 'completed';
 
+  @Column({ type: 'double precision', nullable: true })
+  exactLatitude?: number;
+
+  @Column({ type: 'double precision', nullable: true })
+  exactLongitude?: number;
+
+  @Column({ nullable: true })
+  exactLocationLabel?: string;
+
   @Column({ default: false })
   exactLocationRevealed: boolean;
 
