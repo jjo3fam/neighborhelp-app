@@ -1,4 +1,13 @@
-import { IsLatitude, IsLongitude, IsNumber, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsLatitude,
+  IsLongitude,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 export class CreatePostDto {
   @IsString()
@@ -31,6 +40,6 @@ export class CreatePostDto {
 
   @IsOptional()
   @IsNumber()
-  @MinLength(0)
+  @Min(0)
   radiusMiles?: number;
 }

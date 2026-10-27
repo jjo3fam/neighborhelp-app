@@ -4,7 +4,8 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import * as request from 'supertest';
+import request from 'supertest';
+import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { MatchesModule } from './matches/matches.module';
 import { MessagesModule } from './messages/messages.module';
@@ -36,6 +37,7 @@ describe('NeighborHelp API (in-memory DB)', () => {
         MatchesModule,
         MessagesModule,
       ],
+      controllers: [AppController],
     }).compile();
     app = moduleRef.createNestApplication();
     // Same pipe options as main.ts
@@ -71,6 +73,12 @@ describe('NeighborHelp API (in-memory DB)', () => {
     ...extra,
   });
 
+  it('reports API health', async () => {
+    const res = await http.get('/health').expect(200);
+    expect(res.body).toMatchObject({ ok: true, service: 'neighborhelp-api' });
+    expect(typeof res.body.timestamp).toBe('string');
+  });
+
   async function createPost(owner: Account, extra: Record<string, unknown> = {}) {
     const res = await http.post('/posts').set(auth(owner)).send(postBody(extra)).expect(201);
     return res.body as { id: string };
@@ -86,6 +94,7 @@ describe('NeighborHelp API (in-memory DB)', () => {
       const res = await http.post('/posts').set(auth(owner)).send(postBody()).expect(201);
       expect(res.body.title).toBe('Help moving a couch');
       expect(res.body.approximateLocationName).toBe('Near Main St');
+      expect(res.body.exactLocationLabel).toBeUndefined();
     });
 
     it('rejects a post missing required fields', async () => {
@@ -99,6 +108,19 @@ describe('NeighborHelp API (in-memory DB)', () => {
         .post('/auth/register')
         .send({ email: a.email, password: 'password123' })
         .expect(409);
+    });
+
+    it('logs in with valid credentials and rejects an invalid password', async () => {
+      const account = await register('login');
+      const res = await http
+        .post('/auth/login')
+        .send({ email: account.email, password: 'password123' })
+        .expect(201);
+      expect(res.body.accessToken).toEqual(expect.any(String));
+      await http
+        .post('/auth/login')
+        .send({ email: account.email, password: 'wrong-password' })
+        .expect(401);
     });
   });
 
@@ -152,6 +174,7 @@ describe('NeighborHelp API (in-memory DB)', () => {
       expect(res.body.title).toBe('Updated title');
       expect(res.body.status).toBe('open');
       expect(res.body.userId).toBe(owner.id);
+      await http.delete(`/posts/${post.id}`).set(auth(owner)).expect(200, { deleted: true });
     });
 
     it('filters nearby posts by distance', async () => {
@@ -180,7 +203,7 @@ describe('NeighborHelp API (in-memory DB)', () => {
       await http.post('/offers').set(auth(worker)).send({ postId: post.id }).expect(409);
     });
 
-    it('only the post owner can accept; acceptance reveals exact location to the match', async () => {
+    it('only the post owner can accept; acceptance creates a match without exposing exact location', async () => {
       const owner = await register('poster');
       const worker = await register('worker');
       const other = await register('other');
@@ -197,11 +220,14 @@ describe('NeighborHelp API (in-memory DB)', () => {
       const accepted = await http.patch(`/offers/${offer.id}/accept`).set(auth(owner)).expect(200);
       expect(accepted.body.match.workerId).toBe(worker.id);
       expect(accepted.body.match.posterId).toBe(owner.id);
-      expect(accepted.body.match.exactLocationLabel).toBe('12 Oak Lane');
+      expect(accepted.body.match.exactLocationLabel).toBeUndefined();
+      expect(accepted.body.match.exactLatitude).toBeUndefined();
+      expect(accepted.body.match.exactLongitude).toBeUndefined();
 
       // Post is no longer open and the competing offer was rejected
       const postAfter = await http.get(`/posts/${post.id}`).expect(200);
       expect(postAfter.body.status).toBe('matched');
+      expect(postAfter.body.exactLocationLabel).toBeUndefined();
       const offers = await http.get(`/offers/post/${post.id}`).set(auth(owner)).expect(200);
       const byId = Object.fromEntries(offers.body.map((o: any) => [o.id, o.status]));
       expect(byId[offer.id]).toBe('accepted');
@@ -213,12 +239,16 @@ describe('NeighborHelp API (in-memory DB)', () => {
 
       // Match visibility: parties only
       const matchId = accepted.body.match.id;
-      await http.get(`/matches/${matchId}`).set(auth(worker)).expect(200);
-      await http.get(`/matches/${matchId}`).set(auth(owner)).expect(200);
+      const workerMatch = await http.get(`/matches/${matchId}`).set(auth(worker)).expect(200);
+      const ownerMatch = await http.get(`/matches/${matchId}`).set(auth(owner)).expect(200);
+      expect(workerMatch.body.exactLocationLabel).toBeUndefined();
+      expect(ownerMatch.body.exactLatitude).toBeUndefined();
       await http.get(`/matches/${matchId}`).set(auth(stranger)).expect(403);
       await http.get(`/matches/${matchId}`).set(auth(other)).expect(403);
       const mine = await http.get('/matches/me').set(auth(stranger)).expect(200);
       expect(mine.body).toEqual([]);
+      const workerMatches = await http.get('/matches/me').set(auth(worker)).expect(200);
+      expect(workerMatches.body[0].exactLocationLabel).toBeUndefined();
     });
 
     it('shows an offer author only their own offers', async () => {
@@ -232,6 +262,21 @@ describe('NeighborHelp API (in-memory DB)', () => {
       const res = await http.get(`/offers/post/${post.id}`).set(auth(w1)).expect(200);
       expect(res.body).toHaveLength(1);
       expect(res.body[0].userId).toBe(w1.id);
+    });
+
+    it('allows the post owner to reject a pending offer only once', async () => {
+      const owner = await register('poster');
+      const worker = await register('worker');
+      const post = await createPost(owner);
+      const offer = (await http.post('/offers').set(auth(worker)).send({ postId: post.id }).expect(201))
+        .body;
+
+      await http.patch(`/offers/${offer.id}/reject`).set(auth(worker)).expect(403);
+      await http.patch(`/offers/${offer.id}/reject`).set(auth(owner)).expect(200, {
+        ...offer,
+        status: 'rejected',
+      });
+      await http.patch(`/offers/${offer.id}/reject`).set(auth(owner)).expect(400);
     });
 
     it('has no public endpoint to create matches', async () => {
