@@ -3,20 +3,20 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeor
 @Entity('messages')
 export class Message {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  postId: string;
+  postId!: string;
 
   @Column()
-  senderId: string;
+  senderId!: string;
 
   @Column()
-  receiverId: string;
+  receiverId!: string;
 
   @Column({ type: 'text' })
-  content: string;
+  content!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }

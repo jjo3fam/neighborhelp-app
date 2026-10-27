@@ -3,19 +3,19 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeor
 @Entity('matches')
 export class Match {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  postId: string;
+  postId!: string;
 
   @Column()
-  posterUserId: string;
+  posterUserId!: string;
 
   @Column()
-  workerUserId: string;
+  workerUserId!: string;
 
   @Column({ default: 'accepted' })
-  status: 'accepted' | 'cancelled' | 'completed';
+  status!: 'accepted' | 'cancelled' | 'completed';
 
   @Column({ type: 'double precision', nullable: true })
   exactLatitude?: number;
@@ -27,8 +27,8 @@ export class Match {
   exactLocationLabel?: string;
 
   @Column({ default: false })
-  exactLocationRevealed: boolean;
+  exactLocationRevealed!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }

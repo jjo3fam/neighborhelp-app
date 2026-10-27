@@ -3,13 +3,13 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeor
 @Entity('offers')
 export class Offer {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  postId: string;
+  postId!: string;
 
   @Column()
-  userId: string;
+  userId!: string;
 
   @Column({ type: 'decimal', nullable: true })
   offerAmount?: number;
@@ -18,8 +18,8 @@ export class Offer {
   message?: string;
 
   @Column({ default: 'pending' })
-  status: 'pending' | 'accepted' | 'rejected';
+  status!: 'pending' | 'accepted' | 'rejected';
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }

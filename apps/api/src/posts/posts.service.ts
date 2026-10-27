@@ -37,7 +37,7 @@ export class PostsService {
     return this.postsRepository.delete(id);
   }
 
-  findNearby(latitude: number, longitude: number, radiusMiles = 25) {
+  findNearby(latitude: number, longitude: number, _radiusMiles = 25) {
     return this.postsRepository
       .createQueryBuilder('post')
       .where('post.status = :status', { status: 'open' })
