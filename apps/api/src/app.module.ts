@@ -13,13 +13,29 @@ import { UsersModule } from './users/users.module';
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres' as const,
-        url: config.get<string>('DATABASE_URL'),
-        autoLoadEntities: true,
-        // Never auto-sync schema in production.
-        synchronize: config.get<string>('NODE_ENV') !== 'production',
-      }),
+      useFactory: (config: ConfigService) => {
+        const databaseUrl = config.get<string>('DATABASE_URL');
+
+        if (databaseUrl) {
+          return {
+            type: 'postgres' as const,
+            url: databaseUrl,
+            autoLoadEntities: true,
+            synchronize: config.get<string>('NODE_ENV') !== 'production',
+          };
+        }
+
+        return {
+          type: 'postgres' as const,
+          host: config.get<string>('DB_HOST') ?? 'localhost',
+          port: config.get<number>('DB_PORT') ?? 5432,
+          username: config.get<string>('DB_USERNAME') ?? 'postgres',
+          password: config.get<string>('DB_PASSWORD') ?? 'postgres',
+          database: config.get<string>('DB_NAME') ?? 'neighborhelp',
+          autoLoadEntities: true,
+          synchronize: config.get<string>('NODE_ENV') !== 'production',
+        };
+      },
     }),
     AuthModule,
     UsersModule,
