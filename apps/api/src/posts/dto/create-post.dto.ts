@@ -31,16 +31,6 @@ export class CreatePostDto {
 
   @IsOptional()
   @IsNumber()
-  @IsLatitude()
-  exactLatitude?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @IsLongitude()
-  exactLongitude?: number;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  exactLocationLabel?: string;
+  @MinLength(0)
+  radiusMiles?: number;
 }

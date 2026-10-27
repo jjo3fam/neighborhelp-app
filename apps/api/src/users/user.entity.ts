@@ -18,7 +18,7 @@ export class User {
   phone?: string;
 
   @Column({ nullable: true })
-  location?: string;
+  homeLocationName?: string;
 
   @Column({ type: 'int', default: 10 })
   locationRadiusBlocks!: number;

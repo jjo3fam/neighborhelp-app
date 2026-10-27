@@ -16,10 +16,8 @@ export function distanceMiles(lat1: number, lon1: number, lat2: number, lon2: nu
   return 2 * EARTH_RADIUS_MILES * Math.asin(Math.sqrt(a));
 }
 
-/** Removes any private exact-location fields before a post leaves the API. */
 export function toPublicPost(post: Post) {
-  const { exactLatitude: _a, exactLongitude: _b, exactLocationLabel: _c, ...rest } = post;
-  return rest;
+  return { ...post };
 }
 
 @Injectable()

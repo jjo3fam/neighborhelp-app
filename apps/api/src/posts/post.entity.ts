@@ -22,7 +22,7 @@ export class Post {
   @Column({ default: 'open' })
   status!: PostStatus;
 
-  // Public, approximate location
+  // Public, approximate location only.
   @Column({ type: 'float' })
   approximateLatitude!: number;
 
@@ -31,17 +31,6 @@ export class Post {
 
   @Column({ nullable: true })
   approximateLocationName?: string;
-
-  // Private exact location: select:false keeps it out of every default query.
-  // It is revealed only through an accepted Match.
-  @Column({ type: 'float', nullable: true, select: false })
-  exactLatitude?: number | null;
-
-  @Column({ type: 'float', nullable: true, select: false })
-  exactLongitude?: number | null;
-
-  @Column({ type: 'varchar', nullable: true, select: false })
-  exactLocationLabel?: string | null;
 
   @CreateDateColumn()
   createdAt!: Date;

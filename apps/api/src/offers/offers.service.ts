@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Match } from '../matches/match.entity';
@@ -47,12 +41,7 @@ export class OffersService {
       const offer = await em.findOne(Offer, { where: { id: offerId } });
       if (!offer) throw new NotFoundException('Offer not found');
 
-      // Exact-location columns are select:false, so load them explicitly.
-      const post = await em
-        .createQueryBuilder(Post, 'post')
-        .addSelect(['post.exactLatitude', 'post.exactLongitude', 'post.exactLocationLabel'])
-        .where('post.id = :id', { id: offer.postId })
-        .getOne();
+      const post = await em.findOne(Post, { where: { id: offer.postId } });
       if (!post) throw new NotFoundException('Post not found');
       if (post.userId !== userId) throw new ForbiddenException('Only the post owner can accept offers');
       if (post.status !== 'open') throw new BadRequestException('This post is no longer open');
@@ -80,9 +69,6 @@ export class OffersService {
           offerId: offer.id,
           posterId: post.userId,
           workerId: offer.userId,
-          exactLatitude: post.exactLatitude ?? null,
-          exactLongitude: post.exactLongitude ?? null,
-          exactLocationLabel: post.exactLocationLabel ?? null,
         }),
       );
       return { offer, match };
