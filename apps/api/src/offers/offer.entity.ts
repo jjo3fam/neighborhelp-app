@@ -1,5 +1,7 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
+export type OfferStatus = 'pending' | 'accepted' | 'rejected';
+
 @Entity('offers')
 export class Offer {
   @PrimaryGeneratedColumn('uuid')
@@ -11,14 +13,11 @@ export class Offer {
   @Column()
   userId!: string;
 
-  @Column({ type: 'decimal', nullable: true })
-  offerAmount?: number;
-
   @Column({ type: 'text', nullable: true })
   message?: string;
 
   @Column({ default: 'pending' })
-  status!: 'pending' | 'accepted' | 'rejected';
+  status!: OfferStatus;
 
   @CreateDateColumn()
   createdAt!: Date;

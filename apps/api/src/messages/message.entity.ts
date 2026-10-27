@@ -15,7 +15,7 @@ export class Message {
   receiverId!: string;
 
   @Column({ type: 'text' })
-  content!: string;
+  body!: string;
 
   @CreateDateColumn()
   createdAt!: Date;

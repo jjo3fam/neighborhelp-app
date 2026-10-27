@@ -1,31 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Message } from './message.entity';
+import { Match } from '../matches/match.entity';
 import { CreateMessageDto } from './dto/create-message.dto';
+import { Message } from './message.entity';
 
 @Injectable()
 export class MessagesService {
   constructor(
-    @InjectRepository(Message)
-    private readonly messagesRepository: Repository<Message>,
+    @InjectRepository(Message) private readonly messages: Repository<Message>,
+    @InjectRepository(Match) private readonly matches: Repository<Match>,
   ) {}
 
-  findByPost(postId: string) {
-    return this.messagesRepository.find({
-      where: { postId },
-      order: { createdAt: 'ASC' },
-    });
+  private async requireMatch(postId: string, userId: string) {
+    const match = await this.matches.findOne({ where: { postId } });
+    if (!match || (match.posterId !== userId && match.workerId !== userId)) {
+      throw new ForbiddenException('Messaging is only available between matched users');
+    }
+    return match;
   }
 
-  create(dto: CreateMessageDto) {
-    const message = this.messagesRepository.create({
-      postId: dto.postId,
-      senderId: dto.senderId,
-      receiverId: dto.receiverId,
-      content: dto.content,
-    });
+  async send(userId: string, dto: CreateMessageDto) {
+    const match = await this.requireMatch(dto.postId, userId);
+    const receiverId = match.posterId === userId ? match.workerId : match.posterId;
+    return this.messages.save(
+      this.messages.create({ postId: dto.postId, senderId: userId, receiverId, body: dto.body }),
+    );
+  }
 
-    return this.messagesRepository.save(message);
+  async findForPost(postId: string, userId: string) {
+    await this.requireMatch(postId, userId);
+    return this.messages.find({ where: { postId }, order: { createdAt: 'ASC' } });
   }
 }

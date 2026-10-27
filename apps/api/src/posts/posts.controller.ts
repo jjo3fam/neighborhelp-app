@@ -1,17 +1,8 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreatePostDto } from './dto/create-post.dto';
+import { NearbyQueryDto } from './dto/nearby-query.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostsService } from './posts.service';
 
@@ -19,43 +10,36 @@ import { PostsService } from './posts.service';
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.postsService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('nearby')
-  findNearby(
-    @Query('latitude') latitude: number,
-    @Query('longitude') longitude: number,
-    @Query('radiusMiles') radiusMiles: number,
-  ) {
-    return this.postsService.findNearby(Number(latitude), Number(longitude), Number(radiusMiles || 25));
+  nearby(@Query() q: NearbyQueryDto) {
+    return this.postsService.findNearby(q.latitude, q.longitude, q.radiusMiles);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.postsService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreatePostDto, @Req() req: any) {
-    return this.postsService.create(dto, req.user.id);
+  @UseGuards(JwtAuthGuard)
+  create(@CurrentUser() userId: string, @Body() dto: CreatePostDto) {
+    return this.postsService.create(userId, dto);
   }
 
+  @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdatePostDto) {
-    return this.postsService.update(id, dto);
+  update(@Param('id') id: string, @CurrentUser() userId: string, @Body() dto: UpdatePostDto) {
+    return this.postsService.update(id, userId, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postsService.remove(id);
+  @UseGuards(JwtAuthGuard)
+  remove(@Param('id') id: string, @CurrentUser() userId: string) {
+    return this.postsService.remove(id, userId);
   }
 }

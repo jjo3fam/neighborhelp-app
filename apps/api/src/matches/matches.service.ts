@@ -1,38 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Match } from './match.entity';
-import { CreateMatchDto } from './dto/create-match.dto';
 
 @Injectable()
 export class MatchesService {
-  constructor(
-    @InjectRepository(Match)
-    private readonly matchesRepository: Repository<Match>,
-  ) {}
+  constructor(@InjectRepository(Match) private readonly repo: Repository<Match>) {}
 
-  findByUser(userId: string) {
-    return this.matchesRepository.find({
-      where: [{ posterUserId: userId }, { workerUserId: userId }],
+  findForUser(userId: string) {
+    return this.repo.find({
+      where: [{ posterId: userId }, { workerId: userId }],
       order: { createdAt: 'DESC' },
     });
   }
 
-  findForUserAndPost(postId: string, userId: string) {
-    return this.matchesRepository.findOne({
-      where: [{ postId, posterUserId: userId }, { postId, workerUserId: userId }],
-    });
-  }
-
-  create(dto: CreateMatchDto) {
-    const match = this.matchesRepository.create({
-      postId: dto.postId,
-      posterUserId: dto.posterUserId,
-      workerUserId: dto.workerUserId,
-      status: 'accepted',
-      exactLocationRevealed: !!dto.exactLocationRevealed,
-    });
-
-    return this.matchesRepository.save(match);
+  async findOneForUser(id: string, userId: string) {
+    const match = await this.repo.findOne({ where: { id } });
+    if (!match) throw new NotFoundException('Match not found');
+    if (match.posterId !== userId && match.workerId !== userId) {
+      throw new ForbiddenException('You are not part of this match');
+    }
+    return match;
   }
 }

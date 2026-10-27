@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -8,7 +8,7 @@ export class User {
   @Column({ unique: true })
   email!: string;
 
-  @Column()
+  @Column({ select: false })
   passwordHash!: string;
 
   @Column({ nullable: true })
@@ -18,7 +18,7 @@ export class User {
   phone?: string;
 
   @Column({ nullable: true })
-  location?: string;
+  homeLocationName?: string;
 
   @Column({ default: 'local' })
   authProvider!: string;

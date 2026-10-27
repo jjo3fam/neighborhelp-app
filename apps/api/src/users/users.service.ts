@@ -5,26 +5,22 @@ import { User } from './user.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
-  ) {}
+  constructor(@InjectRepository(User) private readonly repo: Repository<User>) {}
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { email } });
+  create(data: Partial<User>) {
+    return this.repo.save(this.repo.create(data));
   }
 
-  async findById(id: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { id } });
+  /** Includes passwordHash (needed for login only). */
+  findByEmail(email: string) {
+    return this.repo
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .where('user.email = :email', { email })
+      .getOne();
   }
 
-  async create(data: Partial<User>): Promise<User> {
-    const user = this.usersRepository.create(data);
-    return this.usersRepository.save(user);
-  }
-
-  async updateLocation(id: string, location: string): Promise<User | null> {
-    await this.usersRepository.update(id, { location });
-    return this.findById(id);
+  findById(id: string) {
+    return this.repo.findOne({ where: { id } });
   }
 }

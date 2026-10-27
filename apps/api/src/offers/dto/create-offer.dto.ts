@@ -1,6 +1,11 @@
+import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+
 export class CreateOfferDto {
+  @IsUUID()
   postId!: string;
-  userId!: string;
-  offerAmount?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
   message?: string;
 }
