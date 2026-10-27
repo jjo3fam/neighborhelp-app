@@ -22,4 +22,9 @@ export class UsersService {
     const user = this.usersRepository.create(data);
     return this.usersRepository.save(user);
   }
+
+  async updateLocation(id: string, location: string): Promise<User | null> {
+    await this.usersRepository.update(id, { location });
+    return this.findById(id);
+  }
 }
