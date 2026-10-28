@@ -7,9 +7,14 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { getJwtSecret } from './jwt-secret';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { SocialIdentity } from './social-identity.entity';
+import { SocialTokenService } from './social-token.service';
+import { SocialAuthService } from './social-auth.service';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([SocialIdentity]),
     UsersModule,
     PassportModule,
     JwtModule.registerAsync({
@@ -20,7 +25,7 @@ import { getJwtSecret } from './jwt-secret';
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, SocialTokenService, SocialAuthService],
   controllers: [AuthController],
   exports: [AuthService],
 })

@@ -315,6 +315,15 @@ describe('NeighborHelp API (in-memory DB)', () => {
       const thread = await http.get(`/messages/post/${post.id}`).set(auth(owner)).expect(200);
       expect(thread.body).toHaveLength(1);
       expect(thread.body[0].body).toBe('On my way');
+      const inbox = await http.get('/messages/inbox').set(auth(owner)).expect(200);
+      expect(inbox.body).toHaveLength(1);
+      expect(inbox.body[0]).toMatchObject({ postId: post.id, otherUserId: worker.id, lastMessage: 'On my way' });
+      expect(inbox.body[0].email).toBeUndefined();
+      await http.get('/messages/inbox').set(auth(stranger)).expect(200, []);
+      await http.get('/messages/inbox').expect(401);
+      await http.get(`/messages/post/${post.id}`).query({ before: sent.body.id }).set(auth(owner)).expect(200, []);
+      await http.get(`/messages/post/${post.id}`).query({ before: 'invalid' }).set(auth(owner)).expect(400);
+      await http.post('/messages').set(auth(worker)).send({ postId: post.id, body: '   ' }).expect(400);
     });
 
     it('requires authentication', async () => {

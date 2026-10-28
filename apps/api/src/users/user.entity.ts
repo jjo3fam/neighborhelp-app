@@ -8,11 +8,14 @@ export class User {
   @Column({ unique: true })
   email!: string;
 
-  @Column({ select: false })
-  passwordHash!: string;
+  @Column({ type: 'varchar', select: false, nullable: true })
+  passwordHash?: string | null;
 
   @Column({ nullable: true })
   displayName?: string;
+
+  @Column({ nullable: true })
+  avatarUrl?: string;
 
   @Column({ nullable: true })
   phone?: string;

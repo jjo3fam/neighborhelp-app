@@ -6,3 +6,7 @@ apps/api/dist
 apps/mobile/.expo
 apps/mobile/web-build
 .DS_Store
+api.log
+metro.log
+apps/api/uploads
+.expo

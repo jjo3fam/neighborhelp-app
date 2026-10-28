@@ -7,12 +7,14 @@ import { MatchesModule } from './matches/matches.module';
 import { MessagesModule } from './messages/messages.module';
 import { OffersModule } from './offers/offers.module';
 import { PostsModule } from './posts/posts.module';
+import { RatingsModule } from './ratings/ratings.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
   controllers: [AppController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    RatingsModule,
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {

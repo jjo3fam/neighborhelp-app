@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "NeighborHelp",
+    "slug": "neighborhelp",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "newArchEnabled": false,
+    "androidNavigationBar": {
+      "backgroundColor": "#0b1120",
+      "barStyle": "light-content"
+    },
+    "android": {
+      "package": "com.neighborhelp.mobile",
+      "softwareKeyboardLayoutMode": "pan"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow NeighborHelp to choose a profile photo."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow NeighborHelp to use your location to choose the approximate area for a task."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5cd6df8a-369c-4295-a26d-8a496a62e10c"
+      }
+    }
+  }
+}
