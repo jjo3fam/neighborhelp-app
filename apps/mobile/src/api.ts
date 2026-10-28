@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'http://64.177.13.76:3000';
 
 export async function registerUser(payload: { email: string; password: string; displayName?: string; phone?: string }) {
   const res = await fetch(`${BASE_URL}/auth/register`, {
