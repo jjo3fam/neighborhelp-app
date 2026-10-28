@@ -17,7 +17,7 @@ export default function TaskDetailScreen({ token, userId, taskId, onBack, onInte
 
   const handleOffer = async () => {
     try {
-      const res = await fetch('http://localhost:3000/offers', {
+      const res = await fetch('http://64.177.13.76:3000/offers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ export default function TaskDetailScreen({ token, userId, taskId, onBack, onInte
 
   const handleAcceptMatch = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/offers/${taskId}/accept`, {
+      const res = await fetch(`http://64.177.13.76:3000/offers/${taskId}/accept`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
